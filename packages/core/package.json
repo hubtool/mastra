@@ -201,6 +201,16 @@
         "default": "./dist/storage/constants.cjs"
       }
     },
+    "./schema": {
+      "import": {
+        "types": "./dist/schema.d.ts",
+        "default": "./dist/schema.js"
+      },
+      "require": {
+        "types": "./dist/schema.d.ts",
+        "default": "./dist/schema.cjs"
+      }
+    },
     "./package.json": "./package.json"
   },
   "sideEffects": false,
