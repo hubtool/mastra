@@ -169,6 +169,22 @@ export function sanitizeV5UIMessages(
                   : part.output,
             };
           }
+          // Ensure output-error parts have a valid output field so that
+          // convertToModelMessages produces tool-result blocks with output,
+          // which Anthropic/OpenAI API requires ('input[N].output' must be present).
+          if (AIV5.isToolUIPart(part) && part.state === 'output-error') {
+            const partAny = part as Record<string, unknown>;
+            const errorOutput =
+              partAny.output !== undefined
+                ? partAny.output
+                : typeof partAny.errorText === 'string'
+                  ? partAny.errorText
+                  : 'Tool execution failed';
+            return {
+              ...part,
+              output: errorOutput,
+            } as unknown as typeof part;
+          }
           return part;
         }),
       };
