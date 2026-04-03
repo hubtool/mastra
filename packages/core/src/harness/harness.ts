@@ -2228,6 +2228,7 @@ export class Harness<TState = {}> {
     if (resolve) {
       this.pendingQuestions.delete(questionId);
       resolve(answer);
+      this.emit({ type: 'question_answered', questionId });
     }
   }
 
@@ -2578,6 +2579,10 @@ export class Harness<TState = {}> {
           question: event.question,
           options: event.options,
         };
+        break;
+
+      case 'question_answered':
+        ds.pendingQuestion = null;
         break;
 
       case 'plan_approval_required':

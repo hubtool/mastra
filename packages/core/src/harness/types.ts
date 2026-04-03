@@ -766,6 +766,7 @@ export type HarnessEvent =
       title: string;
       plan: string;
     }
+  | { type: 'question_answered'; questionId: string }
   | { type: 'plan_approved' }
   | { type: 'subagent_start'; toolCallId: string; agentType: string; task: string; modelId: string }
   | { type: 'subagent_text_delta'; toolCallId: string; agentType: string; textDelta: string }
