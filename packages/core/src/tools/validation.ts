@@ -356,6 +356,70 @@ function getValueAtPath(obj: unknown, pathSegments: ReadonlyArray<PropertyKey | 
 }
 
 /**
+ * Coerces scalar values to their expected types when the schema expects a different type.
+ * Handles common LLM mistakes:
+ * - Sending a single object when an array is expected → wraps in array
+ * - Sending a number when a boolean is expected → coerces to boolean
+ * - Sending a number when a string is expected → coerces to string
+ * (GitHub #14XXX)
+ *
+ * @param schema The Zod schema to check field types against
+ * @param input The input to process
+ * @returns The input with scalar values coerced, or the original input
+ */
+function coerceScalarMismatches(schema: StandardSchemaWithJSON<unknown>, input: unknown): unknown {
+  if (!isPlainObject(input)) {
+    return input;
+  }
+
+  const unwrapped = unwrapZodType(schema as any);
+  if (!isZodObject(unwrapped)) {
+    return input;
+  }
+
+  const shape = (unwrapped as any).shape;
+  if (!shape || typeof shape !== 'object') {
+    return input;
+  }
+
+  let changed = false;
+  const result: Record<string, unknown> = { ...input };
+
+  for (const [key, value] of Object.entries(input)) {
+    const fieldSchema = shape[key];
+    if (!fieldSchema) {
+      continue;
+    }
+
+    const baseFieldSchema = unwrapZodType(fieldSchema);
+    const typeName = getZodTypeName(baseFieldSchema);
+
+    // Single object → array coercion
+    if (isZodArray(baseFieldSchema) && isPlainObject(value)) {
+      result[key] = [value];
+      changed = true;
+      continue;
+    }
+
+    // Number → boolean coercion
+    if (typeName === 'ZodBoolean' && typeof value === 'number') {
+      result[key] = value !== 0;
+      changed = true;
+      continue;
+    }
+
+    // Number → string coercion
+    if (typeName === 'ZodString' && typeof value === 'number') {
+      result[key] = String(value);
+      changed = true;
+      continue;
+    }
+  }
+
+  return changed ? result : input;
+}
+
+/**
  * Coerces stringified JSON values in object properties when the schema expects
  * an array or object but the LLM returned a JSON string.
  *
@@ -494,6 +558,19 @@ export function validateToolInput<T = unknown>(
     const coercedValidation = safeValidate(schema, coercedInput);
     if ('value' in coercedValidation) {
       return { data: coercedValidation.value };
+    }
+  }
+
+  // Step 4b: Retry with scalar type mismatches coerced
+  // LLMs sometimes send wrong scalar types: single object for array, number for boolean/string.
+  const scalarCoerced = coerceScalarMismatches(
+    schema,
+    coercedInput !== normalizedInput ? coercedInput : normalizedInput,
+  );
+  if (scalarCoerced !== normalizedInput && scalarCoerced !== coercedInput) {
+    const scalarValidation = safeValidate(schema, scalarCoerced);
+    if ('value' in scalarValidation) {
+      return { data: scalarValidation.value };
     }
   }
 
