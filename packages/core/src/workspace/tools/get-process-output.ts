@@ -12,7 +12,13 @@ export const getProcessOutputTool = createTool({
 Use this after starting a background command with execute_command (background: true) to check if the process is still running and read its output.`,
   toModelOutput: sandboxToModelOutput,
   inputSchema: z.object({
-    pid: z.string().describe('The process ID returned when the background command was started'),
+    pid: z
+      .preprocess(
+        // LLMs sometimes send a number instead of a string — coerce it.
+        val => (typeof val === 'number' ? String(val) : val),
+        z.string(),
+      )
+      .describe('The process ID returned when the background command was started'),
     tail: z
       .number()
       .optional()
@@ -20,7 +26,11 @@ Use this after starting a background command with execute_command (background: t
         `Number of lines to return, similar to tail -n. Positive or negative returns last N lines from end. Defaults to ${DEFAULT_TAIL_LINES}. Use 0 for no limit.`,
       ),
     wait: z
-      .boolean()
+      .preprocess(
+        // LLMs sometimes send a number (e.g. 1500) instead of a boolean — coerce it.
+        val => (typeof val === 'number' ? val !== 0 : val),
+        z.boolean(),
+      )
       .optional()
       .describe(
         'If true, block until the process exits and return the final output. Useful for short-lived background commands where you want to wait for the result.',

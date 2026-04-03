@@ -94,10 +94,17 @@ function enrichToolResultsWithInput(message: ModelMessage, dbMessages: MastraDBM
     ...message,
     content: message.content.map(part => {
       if (part.type === 'tool-result') {
-        return {
+        const enriched = {
           ...part,
           input: findToolCallArgs(dbMessages, part.toolCallId),
         } as ToolResultWithInput;
+        // Safety net: Anthropic API requires 'output' on every tool-result.
+        // If it's somehow missing (e.g. output-error parts without output),
+        // provide a fallback to prevent 'Missing required parameter: input[N].output'.
+        if (!('output' in enriched) || enriched.output === undefined) {
+          (enriched as any).output = part.isError ? 'Tool execution failed' : '';
+        }
+        return enriched;
       }
       return part;
     }),
