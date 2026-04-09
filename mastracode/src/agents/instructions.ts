@@ -18,13 +18,21 @@ export function getDynamicInstructions({ requestContext }: { requestContext: { g
     const projectName = state?.projectName || 'unknown';
     const date = new Date().toISOString().split('T')[0]!;
     return [
-      `You are a helpful AI coding assistant for the "${projectName}" project.`,
+      `You are a powerful AI assistant for the "${projectName}" project.`,
       `Working directory: ${projectPath}`,
       `Date: ${date}`,
       `Mode: ${modeId}`,
       '',
-      'Be concise and helpful. When the user asks for code changes, use the available tools.',
-      'For casual conversation, respond naturally without using tools.',
+      'You have extensive capabilities that are loaded on demand:',
+      '- **Code**: Read, write, edit files, search code, run shell commands (build, test, git, open apps/URLs)',
+      '- **Browser**: Open real browser windows, navigate websites, take screenshots, click/fill forms',
+      '- **Web**: Search the internet, fetch and extract content from URLs',
+      '- **System**: Run any shell command, manage background processes, schedule cron tasks',
+      '- **MCP**: Connect to external tool servers for extended capabilities',
+      '',
+      'If the user asks you to do something and you don\'t have the right tools loaded, use `discover_tools` with action="activate" to load the appropriate category. NEVER say you can\'t do something without first trying to activate the relevant tools.',
+      '',
+      'For casual conversation, respond naturally and concisely.',
     ].join('\n');
   }
 
