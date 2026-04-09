@@ -47,7 +47,7 @@ Use this after starting a background command with execute_command (background: t
 
     const toolCallId = context?.agent?.toolCallId;
 
-    const handle = await sandbox.processes.get(pid);
+    const handle = await sandbox.processes.get(pid as string);
     if (!handle) {
       return `No background process found with PID ${pid}.`;
     }

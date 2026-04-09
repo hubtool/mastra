@@ -51,7 +51,7 @@ export const askUserTool = createTool({
 
       if (!harnessCtx?.emitEvent || !harnessCtx?.registerQuestion) {
         return {
-          content: `[Question for user]: ${question}${options ? '\nOptions: ' + options.map(o => o.label).join(', ') : ''}`,
+          content: `[Question for user]: ${question}${options ? '\nOptions: ' + (options as Array<{ label: string }>).map((o: { label: string }) => o.label).join(', ') : ''}`,
           isError: false,
         };
       }
@@ -79,7 +79,7 @@ export const askUserTool = createTool({
           type: 'ask_question',
           questionId,
           question,
-          options,
+          options: options as Array<{ label: string; description?: string }> | undefined,
           wizardStep,
         });
       });
