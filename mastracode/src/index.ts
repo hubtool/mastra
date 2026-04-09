@@ -189,10 +189,10 @@ export async function createMastraCode(config?: MastraCodeConfig) {
       // Uses a conservative limit (100k) that fits all supported models (min 128k context).
       // System messages are always preserved; oldest non-system messages are dropped first.
       // Set tokenLimit to 0 to disable.
-      ...((config?.tokenLimit ?? 100_000) > 0
+      ...((config?.tokenLimit ?? 180_000) > 0
         ? [
             new TokenLimiterProcessor({
-              limit: config?.tokenLimit ?? 100_000,
+              limit: config?.tokenLimit ?? 180_000,
               strategy: 'truncate',
             }),
           ]
