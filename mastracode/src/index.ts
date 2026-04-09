@@ -185,14 +185,15 @@ export async function createMastraCode(config?: MastraCodeConfig) {
           return getStaticallyLoadedInstructionPaths(projectPath);
         },
       }),
-      // Automatically trim old messages when conversation exceeds token budget.
-      // Uses a conservative limit (100k) that fits all supported models (min 128k context).
-      // System messages are always preserved; oldest non-system messages are dropped first.
-      // Set tokenLimit to 0 to disable.
-      ...((config?.tokenLimit ?? 180_000) > 0
+      // TokenLimiterProcessor — opt-in only. The default (0) disables it because:
+      // 1. It runs at every agentic loop step, including during subagent execution
+      // 2. Cutting messages mid-task causes subagent results to be lost
+      // 3. Hubcode already has reactive context compaction that waits for completion
+      // Callers can enable it by setting tokenLimit > 0 for batch/non-interactive use cases.
+      ...(config?.tokenLimit && config.tokenLimit > 0
         ? [
             new TokenLimiterProcessor({
-              limit: config?.tokenLimit ?? 180_000,
+              limit: config.tokenLimit,
               strategy: 'truncate',
             }),
           ]
