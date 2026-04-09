@@ -61,13 +61,24 @@ export interface MastraCodeConfig {
   modes?: HarnessMode[];
   /** Override or extend subagent definitions. Default: explore/plan/execute */
   subagents?: HarnessSubagent[];
-  /** Extra tools merged into the dynamic tool set. Can be a static record or a function that receives requestContext. */
+  /**
+   * Extra tools merged into the dynamic tool set.
+   *
+   * - **Static record**: tools are merged (existing built-ins are NOT overwritten).
+   * - **Function**: called per-request with `{ builtinTools, requestContext }`.
+   *   The returned tools are merged into the built-in set. Use `permissionRules.tools`
+   *   to deny unwanted built-ins if you want to control the full tool set.
+   */
   extraTools?:
     | Record<
         string,
         { execute?: (input: unknown, context?: unknown) => Promise<unknown> | unknown; [key: string]: unknown }
       >
     | ((ctx: {
+        builtinTools: Record<
+          string,
+          { execute?: (input: unknown, context?: unknown) => Promise<unknown> | unknown; [key: string]: unknown }
+        >;
         requestContext: RequestContext;
       }) => Record<
         string,

@@ -46,9 +46,23 @@ function wrapToolWithHooks(toolName: string, tool: ToolLike, hookManager?: HookM
   };
 }
 
+/**
+ * Extra tools callback signature. When `extraTools` is a function, it receives:
+ * - `builtinTools`: The default tools built by mastracode (sandbox, web search, MCP)
+ * - `requestContext`: The current request context for accessing harness state
+ *
+ * If the function returns an object, those tools are MERGED into the built-in set.
+ * If the caller wants to REPLACE all tools, it should use `permissionRules.tools`
+ * to deny unwanted built-ins and provide replacements via the returned object.
+ */
+export type ExtraToolsFn = (ctx: {
+  builtinTools: Record<string, ToolLike>;
+  requestContext: RequestContext;
+}) => Record<string, ToolLike>;
+
 export function createDynamicTools(
   mcpManager?: McpManager,
-  extraTools?: Record<string, ToolLike> | ((ctx: { requestContext: RequestContext }) => Record<string, ToolLike>),
+  extraTools?: Record<string, ToolLike> | ExtraToolsFn,
   hookManager?: HookManager,
   disabledTools?: string[],
 ) {
@@ -84,10 +98,17 @@ export function createDynamicTools(
     }
 
     if (extraTools) {
-      const resolved = typeof extraTools === 'function' ? extraTools({ requestContext }) : extraTools;
-      for (const [name, tool] of Object.entries(resolved)) {
-        if (!(name in tools)) {
+      if (typeof extraTools === 'function') {
+        // Pass builtinTools so the caller can inspect/filter/replace them
+        const resolved = extraTools({ builtinTools: { ...tools }, requestContext });
+        for (const [name, tool] of Object.entries(resolved)) {
           tools[name] = tool;
+        }
+      } else {
+        for (const [name, tool] of Object.entries(extraTools)) {
+          if (!(name in tools)) {
+            tools[name] = tool;
+          }
         }
       }
     }

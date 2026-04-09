@@ -92,7 +92,7 @@ describe('createDynamicTools – extraTools', () => {
       execute: async () => ({ result: 'dynamic' }),
     });
 
-    const getDynamicTools = createDynamicTools(undefined, ({ requestContext }) => {
+    const getDynamicTools = createDynamicTools(undefined, ({ builtinTools, requestContext }) => {
       // Verify requestContext is usable
       const ctx = requestContext.get('harness') as any;
       if (!ctx) return {};
@@ -112,7 +112,7 @@ describe('createDynamicTools – extraTools', () => {
       execute: async () => ({ result: 'conditional' }),
     });
 
-    const getDynamicTools = createDynamicTools(undefined, ({ requestContext }) => {
+    const getDynamicTools = createDynamicTools(undefined, ({ builtinTools, requestContext }) => {
       // Condition that won't match — harness context has no 'featureFlag' key
       const flag = requestContext.get('featureFlag') as string | undefined;
       if (!flag) return {};
