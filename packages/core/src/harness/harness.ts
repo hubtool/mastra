@@ -2578,6 +2578,7 @@ export class Harness<TState = {}> {
           questionId: event.questionId,
           question: event.question,
           options: event.options,
+          wizardStep: event.wizardStep,
         };
         break;
 

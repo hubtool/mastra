@@ -527,6 +527,7 @@ export interface HarnessDisplayState {
     questionId: string;
     question: string;
     options?: Array<{ label: string; description?: string }>;
+    wizardStep?: { current: number; total: number };
   } | null;
 
   /** A plan awaiting user approval (null when none) */
@@ -759,6 +760,7 @@ export type HarnessEvent =
       questionId: string;
       question: string;
       options?: Array<{ label: string; description?: string }>;
+      wizardStep?: { current: number; total: number };
     }
   | {
       type: 'plan_approval_required';

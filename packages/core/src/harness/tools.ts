@@ -31,8 +31,17 @@ export const askUserTool = createTool({
       )
       .optional()
       .describe('Optional choices. If provided, shows a selection list. If omitted, shows a free-text input.'),
+    wizardStep: z
+      .object({
+        current: z.number().int().min(1).describe('Current step number (1-based)'),
+        total: z.number().int().min(1).describe('Total number of steps in the wizard'),
+      })
+      .optional()
+      .describe(
+        'Optional wizard step indicator. Use when asking a sequence of related questions one at a time. Shows a step progress indicator (e.g., "Step 1 of 3").',
+      ),
   }),
-  execute: async ({ question, options }, context) => {
+  execute: async ({ question, options, wizardStep }, context) => {
     try {
       const harnessCtx = context?.requestContext?.get('harness') as HarnessRequestContext | undefined;
 
@@ -67,6 +76,7 @@ export const askUserTool = createTool({
           questionId,
           question,
           options,
+          wizardStep,
         });
       });
 
