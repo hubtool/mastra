@@ -60,3 +60,6 @@ om-reflector-fixture.json
 .notion
 .dev/lima
 /packages/core/__recordings__
+
+# Tarballs
+*.tgz
