@@ -9,7 +9,7 @@ import type {
 } from '@mastra/core/harness';
 import { PROVIDER_REGISTRY } from '@mastra/core/llm';
 import type { ProviderConfig } from '@mastra/core/llm';
-import { AgentsMDInjector } from '@mastra/core/processors';
+import { AgentsMDInjector, TokenLimiterProcessor } from '@mastra/core/processors';
 import type { RequestContext } from '@mastra/core/request-context';
 
 import { getDynamicInstructions } from './agents/instructions.js';
@@ -102,6 +102,10 @@ export interface MastraCodeConfig {
   disableMcp?: boolean;
   /** Disable hooks. Default: false */
   disableHooks?: boolean;
+  /** Max input tokens for conversation history. Default: 100000.
+   *  The TokenLimiterProcessor trims oldest messages to fit within this budget.
+   *  Set to 0 to disable. */
+  tokenLimit?: number;
 }
 
 export function createAuthStorage() {
@@ -181,6 +185,18 @@ export async function createMastraCode(config?: MastraCodeConfig) {
           return getStaticallyLoadedInstructionPaths(projectPath);
         },
       }),
+      // Automatically trim old messages when conversation exceeds token budget.
+      // Uses a conservative limit (100k) that fits all supported models (min 128k context).
+      // System messages are always preserved; oldest non-system messages are dropped first.
+      // Set tokenLimit to 0 to disable.
+      ...((config?.tokenLimit ?? 100_000) > 0
+        ? [
+            new TokenLimiterProcessor({
+              limit: config?.tokenLimit ?? 100_000,
+              strategy: 'truncate',
+            }),
+          ]
+        : []),
     ],
   });
 
