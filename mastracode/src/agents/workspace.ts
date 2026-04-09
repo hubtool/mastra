@@ -117,6 +117,16 @@ export function getDynamicWorkspace({ requestContext, mastra }: { requestContext
     mastra_workspace_ast_edit: { ...TOOL_NAME_OVERRIDES.mastra_workspace_ast_edit, enabled: false },
   };
 
+  // When instructionsMode is 'light' (e.g. casual chat like "oi"), disable ALL
+  // workspace tools to save ~4-6k tokens from the API call. The tools are
+  // re-enabled on the next request when instructionsMode returns to 'full'.
+  const isLightMode = state?.instructionsMode === 'light';
+  const lightModeTools = isLightMode
+    ? Object.fromEntries(
+        Object.entries(TOOL_NAME_OVERRIDES).map(([key, val]) => [key, { ...val, enabled: false }]),
+      )
+    : undefined;
+
   // Reuse existing workspace if already registered (preserves ProcessManager state)
   let existing: Workspace<LocalFilesystem, LocalSandbox> | undefined;
   try {
@@ -127,7 +137,13 @@ export function getDynamicWorkspace({ requestContext, mastra }: { requestContext
 
   if (existing) {
     existing.filesystem.setAllowedPaths(allowedPaths);
-    existing.setToolsConfig(isPlanMode ? { ...TOOL_NAME_OVERRIDES, ...planModeTools } : TOOL_NAME_OVERRIDES);
+    existing.setToolsConfig(
+      isLightMode
+        ? lightModeTools
+        : isPlanMode
+          ? { ...TOOL_NAME_OVERRIDES, ...planModeTools }
+          : TOOL_NAME_OVERRIDES,
+    );
     return existing;
   }
 
@@ -159,7 +175,11 @@ export function getDynamicWorkspace({ requestContext, mastra }: { requestContext
         DEBIAN_FRONTEND: 'noninteractive',
       },
     }),
-    tools: isPlanMode ? { ...TOOL_NAME_OVERRIDES, ...planModeTools } : TOOL_NAME_OVERRIDES,
+    tools: isLightMode
+      ? lightModeTools
+      : isPlanMode
+        ? { ...TOOL_NAME_OVERRIDES, ...planModeTools }
+        : TOOL_NAME_OVERRIDES,
     ...(skillPaths.length > 0 ? { skills: skillPaths } : {}),
     lsp: lspConfig,
   });
