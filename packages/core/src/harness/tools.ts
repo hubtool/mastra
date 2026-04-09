@@ -23,11 +23,15 @@ export const askUserTool = createTool({
   inputSchema: z.object({
     question: z.string().min(1).describe('The question to ask the user. Should be clear and specific.'),
     options: z
-      .array(
-        z.object({
-          label: z.string().describe('Short display text for this option (1-5 words)'),
-          description: z.string().optional().describe('Explanation of what this option means'),
-        }),
+      .preprocess(
+        // LLMs sometimes send a single object instead of an array — coerce it.
+        val => (val !== undefined && val !== null && !Array.isArray(val) ? [val] : val),
+        z.array(
+          z.object({
+            label: z.string().describe('Short display text for this option (1-5 words)'),
+            description: z.string().optional().describe('Explanation of what this option means'),
+          }),
+        ),
       )
       .optional()
       .describe('Optional choices. If provided, shows a selection list. If omitted, shows a free-text input.'),
