@@ -10,6 +10,24 @@ export function getDynamicInstructions({ requestContext }: { requestContext: { g
   const modeId = harnessContext?.modeId ?? 'build';
   const projectPath = state?.projectPath ?? process.cwd();
 
+  // Light instructions mode: return a minimal system prompt to save tokens.
+  // Callers set state.instructionsMode = "light" before sendMessage to opt in.
+  // This skips tool guidance, agent instructions (CLAUDE.md/AGENTS.md), and
+  // mode-specific prompts, reducing the system prompt from ~5-8k to ~200 tokens.
+  if (state?.instructionsMode === 'light') {
+    const projectName = state?.projectName || 'unknown';
+    const date = new Date().toISOString().split('T')[0]!;
+    return [
+      `You are a helpful AI coding assistant for the "${projectName}" project.`,
+      `Working directory: ${projectPath}`,
+      `Date: ${date}`,
+      `Mode: ${modeId}`,
+      '',
+      'Be concise and helpful. When the user asks for code changes, use the available tools.',
+      'For casual conversation, respond naturally without using tools.',
+    ].join('\n');
+  }
+
   const promptCtx: PromptContext = {
     projectPath,
     projectName: state?.projectName ?? '',

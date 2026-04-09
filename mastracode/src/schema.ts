@@ -28,6 +28,10 @@ export const stateSchema = z.object({
       tools: z.record(z.string(), z.enum(['allow', 'ask', 'deny'])).default({}),
     })
     .default({ categories: {}, tools: {} }),
+  // Instructions mode — 'full' uses the complete system prompt with tool guidance,
+  // agent instructions (CLAUDE.md/AGENTS.md), mode prompts, etc.  'light' uses a
+  // minimal prompt to dramatically reduce token usage for casual/chat messages.
+  instructionsMode: z.enum(['full', 'light']).default('full'),
   // Smart editing mode — use AST-based analysis for code edits
   smartEditing: z.boolean().default(true),
   // Notification mode — alert when TUI needs user attention
