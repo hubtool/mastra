@@ -240,8 +240,8 @@ export function sanitizeV5UIMessages(
           // which Anthropic API requires ('input[N].output' must be present).
           if (AIV5.isToolUIPart(part) && part.state === 'output-error') {
             const errorOutput =
-              'output' in part && part.output !== undefined
-                ? part.output
+              'output' in part && (part as any).output !== undefined
+                ? (part as any).output
                 : 'errorText' in part && typeof (part as any).errorText === 'string'
                   ? (part as any).errorText
                   : 'Tool execution failed';

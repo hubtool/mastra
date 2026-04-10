@@ -102,7 +102,7 @@ function enrichToolResultsWithInput(message: ModelMessage, dbMessages: MastraDBM
         // If it's somehow missing (e.g. output-error parts without output),
         // provide a fallback to prevent 'Missing required parameter: input[N].output'.
         if (!('output' in enriched) || enriched.output === undefined) {
-          (enriched as any).output = part.isError ? 'Tool execution failed' : '';
+          (enriched as any).output = (part as any).isError ? 'Tool execution failed' : '';
         }
         return enriched;
       }

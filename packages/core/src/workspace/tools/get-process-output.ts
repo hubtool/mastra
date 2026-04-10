@@ -54,7 +54,7 @@ Use this after starting a background command with execute_command (background: t
       if (!sandbox.processes) {
         throw new SandboxFeatureNotSupportedError('processes');
       }
-      const handle = await sandbox.processes.get(pid);
+      const handle = await sandbox.processes.get(pid as string);
       if (!handle) {
         span.end({ success: false });
         return `No background process found with PID ${pid}.`;
