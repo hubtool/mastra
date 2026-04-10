@@ -213,12 +213,12 @@
     },
     "./schema": {
       "import": {
-        "types": "./dist/schema.d.ts",
-        "default": "./dist/schema.js"
+        "types": "./dist/schema/index.d.ts",
+        "default": "./dist/schema/index.js"
       },
       "require": {
-        "types": "./dist/schema.d.ts",
-        "default": "./dist/schema.cjs"
+        "types": "./dist/schema/index.d.ts",
+        "default": "./dist/schema/index.cjs"
       }
     },
     "./package.json": "./package.json"
